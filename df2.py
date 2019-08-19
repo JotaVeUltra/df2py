@@ -10,19 +10,18 @@ Options:
     -l --like=LIKE
 """
 
-from hashlib import md5
 from collections import defaultdict
-from os.path import join
-import os
-from functools import lru_cache
 from docopt import docopt
+from functools import lru_cache
+from hashlib import md5
+from os import walk
+from os.path import join
 from pprint import pformat
 
 
 BLOCKSIZE = 65536
 
-@lru_cache(maxsize=None)  # not sure why I put this line of code, neither if it is needed
-                          # I think this is a way to not hash the same file twice
+@lru_cache(maxsize=None)
 def md5_hash(file_path):
     """
     Returns the md5 hexadecimal hash of a given file
@@ -45,7 +44,7 @@ def df(paths, q, like):
         like_hash = md5_hash(like)
         hash_dict[like_hash].add(like)
     for path in paths:
-        for directory in os.walk(path):
+        for directory in walk(path):
             directory_path = directory[0]
             if not q:
                 print(directory_path)
