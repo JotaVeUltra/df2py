@@ -23,7 +23,7 @@ from pprint import pformat
 BLOCKSIZE = 65536
 
 @lru_cache(maxsize=None)
-def md5_hash(file_path):
+def md5_hash(file_path: str) -> str:
     """
     Returns the md5 hexadecimal hash of a given file
     """
@@ -36,7 +36,7 @@ def md5_hash(file_path):
             md5_hasher.update(buf)
     return md5_hasher.hexdigest()
 
-def df(paths, q, like):
+def duplicate_finder(paths: list, quiet: bool, like: str) -> dict:
     """
     Returs a dict of set to every file under given paths
     """
@@ -47,7 +47,7 @@ def df(paths, q, like):
     for path in paths:
         for directory in walk(path):
             directory_path = directory[0]
-            if not q:
+            if not quiet:
                 print(directory_path)
             files = directory[2]
             for f in files:
@@ -57,23 +57,23 @@ def df(paths, q, like):
         return {like_hash: hash_dict[like_hash]}
     return hash_dict
 
-if __name__ == '__main__':
+def main():
     """
     Take any number of paths received as arg and write the path of every file that has a duplicate
     """
     arguments = docopt(__doc__)
-    file_name = arguments['--output']
-    hd = df(arguments['<path>'], arguments['--quiet'], arguments['--like'])
-    rhd = {k:v for k, v in hd.items() if len(v) > 1}
-    fhd = pformat(rhd)
-    if file_name:
-        with open(file_name, 'w') as hf:
-            hf.write(hd+'\n')
+    output_filename = arguments['--output']
+    hash_dict = duplicate_finder(arguments['<path>'], arguments['--quiet'], arguments['--like'])
+    raw_hash_dict = {k:v for k, v in hash_dict.items() if len(v) > 1}
+    formated_hash_dict = pformat(raw_hash_dict)
+    if output_filename:
+        with open(output_filename, 'w') as output_file:
+            output_file.write(hash_dict+'\n')
     else:
-        print(fhd)
+        print(formated_hash_dict)
         if arguments['--size']:
-            print(len(rhd))
-    for dup in rhd.values():
+            print(len(raw_hash_dict))
+    for dup in raw_hash_dict.values():
         duplicates = list(dup)
         for i, file in enumerate(duplicates):
             print(f"{i} - {file}")
@@ -83,3 +83,6 @@ if __name__ == '__main__':
             print()
         except:
             pass
+
+if __name__ == '__main__':
+    main()
